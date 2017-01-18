@@ -19,7 +19,7 @@ using namespace std;
 
 //Task 2 methods
 void writeMCToFile(vector<Point> list, vector<double> stdev, string name);
-double calcProbability (complex<double> psi1, complex<double> psi2);
+double calcJointProb (complex<double> psi1, complex<double> psi2);
 
 //Task 3 methods
 complex<double> createWaveFunction(vector<Point> points);

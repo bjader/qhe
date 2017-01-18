@@ -22,9 +22,9 @@ void writeMCToFile(vector<Point> list, vector<double> stdev, string name) {
 }
 
 //Method to calculate the probability over two given wave function: p = |psi1|^2 * |psi2|^2
-double calcProbability (complex<double> psi1, complex<double> psi2) {
+double calcJointProb (complex<double> psi1, complex<double> psi2) {
     
-    return ((pow(psi1.real(),2)) + (pow(psi1.imag(),2))) * ((pow(psi2.real(),2)) + (pow(psi2.imag(),2)));
+    return norm(psi1) * norm(psi2);
 }
 
 //Method to create a Laughlin wavefunction based off input coordinates in 2-d space
