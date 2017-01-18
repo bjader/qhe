@@ -22,7 +22,7 @@ using namespace Eigen;
 
 //Global constants
 const complex<double> i(0.0,1.0);
-double L = 1;
+double L = 5;
 
 //Global objects
 random_device rd;

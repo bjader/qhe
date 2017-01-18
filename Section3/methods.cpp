@@ -38,7 +38,7 @@ complex<double> createWaveFunction(vector<Point> points) {
     }
     
     //Initialise summation variables
-    complex<double> product = (1.0,0.0);
+    complex<double> product = complex<double>(1.0,0.0);
     double sum_square = 0;
     
     //For every point in the system
@@ -50,6 +50,7 @@ complex<double> createWaveFunction(vector<Point> points) {
             
             complex<double> z_j = zPoints[j];
             complex<double> product_term = (z_i - z_j);
+            //cout << endl << product_term;
             
             if(product_term == (0.0,0.0)) {
             }
