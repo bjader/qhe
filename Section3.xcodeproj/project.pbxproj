@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		D81BEA741E2E847C008B07C6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D81BEA731E2E847C008B07C6 /* main.cpp */; };
+		D81BEA7C1E2E84D3008B07C6 /* Point.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D81BEA7A1E2E84D3008B07C6 /* Point.cpp */; };
+		D81BEA7F1E2E8555008B07C6 /* methods.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D81BEA7D1E2E8555008B07C6 /* methods.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,10 @@
 /* Begin PBXFileReference section */
 		D81BEA701E2E847C008B07C6 /* Section3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Section3; sourceTree = BUILT_PRODUCTS_DIR; };
 		D81BEA731E2E847C008B07C6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		D81BEA7A1E2E84D3008B07C6 /* Point.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Point.cpp; sourceTree = "<group>"; };
+		D81BEA7B1E2E84D3008B07C6 /* Point.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Point.hpp; sourceTree = "<group>"; };
+		D81BEA7D1E2E8555008B07C6 /* methods.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = methods.cpp; sourceTree = "<group>"; };
+		D81BEA7E1E2E8555008B07C6 /* methods.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = methods.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,8 +64,20 @@
 			isa = PBXGroup;
 			children = (
 				D81BEA731E2E847C008B07C6 /* main.cpp */,
+				D81BEA801E2E85CE008B07C6 /* Custom_classes */,
 			);
 			path = Section3;
+			sourceTree = "<group>";
+		};
+		D81BEA801E2E85CE008B07C6 /* Custom_classes */ = {
+			isa = PBXGroup;
+			children = (
+				D81BEA7A1E2E84D3008B07C6 /* Point.cpp */,
+				D81BEA7B1E2E84D3008B07C6 /* Point.hpp */,
+				D81BEA7D1E2E8555008B07C6 /* methods.cpp */,
+				D81BEA7E1E2E8555008B07C6 /* methods.hpp */,
+			);
+			name = Custom_classes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,6 +138,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D81BEA7F1E2E8555008B07C6 /* methods.cpp in Sources */,
+				D81BEA7C1E2E84D3008B07C6 /* Point.cpp in Sources */,
 				D81BEA741E2E847C008B07C6 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -218,6 +238,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = D84YFNG97M;
+				HEADER_SEARCH_PATHS = /usr/local/include/eigen3/;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/Cellar/eigen/3.2.10/",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -226,6 +251,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = D84YFNG97M;
+				HEADER_SEARCH_PATHS = /usr/local/include/eigen3/;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/Cellar/eigen/3.2.10/",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
