@@ -68,4 +68,3 @@ complex<double> createWaveFunction(vector<Point> points) {
 
     return Psi;
 }
-

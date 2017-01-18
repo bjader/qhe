@@ -21,7 +21,7 @@ using namespace std;
 using namespace Eigen;
 
 //Global constants
-const complex<double> i(0.0,1.0);
+//const complex<double> i(0.0,1.0);
 double L = 5;
 
 //Global objects
@@ -30,8 +30,79 @@ random_device rd;
 mt19937 gen(rd());
 uniform_real_distribution<> dis(0,1); // Define our distribution as between 0 and 1
 
-//Method using a Metropolis algorithm to iterate the two systems over random moves
+//Method to "burn in" a random system to more accurately represent the true distribution
+//Runs same Metropolis algorithm as runMetropolis but without any calculations or swaps
+void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterations) {
+    
+    random_device rd;
+    //Mersenne Twister algorithm, default seed
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0,1);
+    
+    for (int i = 0; i<num_iterations; i++) {
+        
+        //Calculate probability of current system
+        complex<double> psi1 = createWaveFunction(R1);
+        complex<double> psi2 = createWaveFunction(R2);
+        double p = calcJointProb(psi1, psi2);
+        
+        //Create empty test system
+        vector<Point> R3;
+        vector<Point> R4;
+        
+        //Populate new system R3 with original particles from R1, plus a random displacement of length dr
+        for (Point p1 : R1) {
+            double phi = (2*M_PI) * dis(gen);
+            double x = p1.x() + (dr * cos(phi));
+            double y = p1.y() + (dr * sin(phi));
+            
+            //If a particle moves outside the box, instead make it reappear out the opposite side
+            if (x > (L/2)) { x = x - L;}
+            if (x < (-L/2)) {x = x + L;}
+            if (y > (L/2)) { y = y - L;}
+            if (y < (-L/2)) { y = y + L;}
+            
+            R3.push_back(Point(x,y));
+        }
+        
+        //Repeat for R4/R2
+        for (Point p2 : R2) {
+            double phi = (2*M_PI) * dis(gen);
+            double x = p2.x() + (dr * cos(phi));
+            double y = p2.y() + (dr * sin(phi));
+            
+            if (x > (L/2)) { x = x - L;}
+            if (x < (-L/2)) {x = x + L;}
+            if (y > (L/2)) { y = y - L;}
+            if (y < (-L/2)) { y = y + L;}
+            
+            R4.push_back(Point(x,y));
+            
+        }
+        
+        //Calculate probability of new system
+        complex<double> psi3 = createWaveFunction(R3);
+        complex<double> psi4 = createWaveFunction(R4);
+        double p_new = calcJointProb(psi3,psi4);
+        
+        //Accept in accordance to Hastings-Metropolis method
+        double lambda = min(p_new/p,1.0);
+        double alpha = dis(gen);
+        
+        //If accept the new configuration
+        if (alpha < lambda) {
+            
+            R1 = R3;
+            psi1 = psi3;
+            R2 = R4;
+            psi2 = psi4;
+        }
+        
+    }
+}
 
+
+//Method using a Metropolis algorithm to iterate the two systems over random moves
 void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations) {
     
     //Define some counters
@@ -126,38 +197,39 @@ void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, i
                     iListR4.push_back(j);
                     
                 }
-                //If the number of particles in R3_A = R4_A we can perform the swap
-                if (iListR3.size() == iListR4.size()) {
-                    swapped += 1;
-                    for (int d=0; d<iListR3.size(); d++) {
-                        
-                        //Find the index integer of the particles we are swapping
-                        int id_1 = iListR3[d];
-                        int id_2 = iListR4[d];
-                        
-                        //Swap the particles by copying each others coordinates
-                        //At this point R2 is still an exact copy of R4. So in fact we copy R2_A into R3_A to avoid creating temporary copy variables
-                        //And we do the same copying R1_A into R4_A
-                        R3[id_1].copy(R2[id_2]);
-                        R4[id_2].copy(R1[id_1]);
-                    }
-                    //Recalculate the wavefunctions of R3 and R4 (after the swap)
-                    
-                    psi3 = createWaveFunction(R3);
-                    psi4 = createWaveFunction(R4);
-                    g = (psi3 * psi4)/(psi1 * psi2);
-                    
-                }
-                //If we didnt perform the swap, dont add to the integral (dirac delta factor)
-                else {
-                    g = 0;
-                }
-                sum_gx[0] += g;
-                sum_g2x[0] += pow(g,2);
-                
-                iListR3.clear();
-                iListR4.clear();
             }
+            //If the number of particles in R3_A = R4_A we can perform the swap
+            if (iListR3.size() == iListR4.size()) {
+                swapped += 1;
+                for (int d=0; d<iListR3.size(); d++) {
+                    
+                    //Find the index integer of the particles we are swapping
+                    int id_1 = iListR3[d];
+                    int id_2 = iListR4[d];
+                        
+                    //Swap the particles by copying each others coordinates
+                    //At this point R2 is still an exact copy of R4. So in fact we copy R2_A into R3_A to avoid creating temporary copy variables
+                    //And we do the same copying R1_A into R4_A
+                    R3[id_1].copy(R2[id_2]);
+                    R4[id_2].copy(R1[id_1]);
+                }
+                //Recalculate the wavefunctions of R3 and R4 (after the swap)
+                    
+                psi3 = createWaveFunction(R3);
+                psi4 = createWaveFunction(R4);
+                g = (psi3 * psi4)/(psi1 * psi2);
+                    
+            }
+            //If we didnt perform the swap, dont add to the integral (dirac delta factor)
+            else {
+                g = 0;
+            }
+            sum_gx[0] += g;
+            sum_g2x[0] += pow(g,2);
+                
+            iListR3.clear();
+            iListR4.clear();
+            
         }
         //Else reject the new configuration
         else {
@@ -222,6 +294,19 @@ int main(int argc, const char * argv[]) {
         R2.push_back(Point(rand_x2,rand_y2));
     }
     
-    runMetropolis(R1, R2, 0.01, 10000);
+    for (Point p : R1) {
+        p.print();
+        cout << endl;
+    }
+    
+    runBurnIn(R1, R2, 0.1, 100000);
+    
+    cout << endl;
+    for (Point p : R1) {
+        p.print();
+        cout << endl;
+    }
+    
+    //runMetropolis(R1, R2, 0.1, 100000);
     
 }
