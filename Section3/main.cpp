@@ -283,30 +283,28 @@ int main(int argc, const char * argv[]) {
     
     for (int i=0; i<N; i++) {
         
-        //Populate R1 with randomly placed particles
-        double rand_x1 = (dis(gen) * L) - (L/2);        // Conversion from random number between 0 -> 1
-        double rand_y1 = (dis(gen) * L) - (L/2);        // to random number between -L/2 and L/2
-        R1.push_back(Point(rand_x1,rand_y1));
+        //Populate R1 with particles randomly placed within radius of 3-sigma from origin
+        double sigma = 1;
+        
+        double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
+        double radius1 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
+        
+        double x1 =  radius1 * cos(phi1);
+        double y1 = radius1 * sin(phi1);
+        R1.push_back(Point(x1,y1));
         
         //Repeat for R2
-        double rand_x2 = (dis(gen) * L) - (L/2);
-        double rand_y2 = (dis(gen) * L) - (L/2);
-        R2.push_back(Point(rand_x2,rand_y2));
-    }
-    
-    for (Point p : R1) {
-        p.print();
-        cout << endl;
+        
+        double phi2 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
+        double radius2 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
+        
+        double x2 =  radius2 * cos(phi2);
+        double y2 = radius2 * sin(phi2);
+        R2.push_back(Point(x2,y2));
     }
     
     runBurnIn(R1, R2, 0.1, 100000);
-    
-    cout << endl;
-    for (Point p : R1) {
-        p.print();
-        cout << endl;
-    }
-    
-    //runMetropolis(R1, R2, 0.1, 100000);
+
+    runMetropolis(R1, R2, 0.005, 100000);
     
 }
