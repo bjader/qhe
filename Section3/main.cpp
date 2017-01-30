@@ -30,6 +30,26 @@ random_device rd;
 mt19937 gen(rd());
 uniform_real_distribution<> dis(0,1); // Define our distribution as between 0 and 1
 
+//Method to initialise a system with N particles randomly distributed within 3-sigma radius
+vector<Point> initialiseSystem (int N) {
+    
+    vector<Point> R;
+    
+    for (int i=0; i<N; i++) {
+        
+        //Populate R1 with particles randomly placed within radius of 3-sigma from origin
+        double sigma = 1;
+        
+        double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
+        double radius1 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
+        
+        double x1 =  radius1 * cos(phi1);
+        double y1 = radius1 * sin(phi1);
+        R.push_back(Point(x1,y1));
+    }
+    return R;
+}
+
 //Method to "burn in" a random system to more accurately represent the true distribution
 //Runs same Metropolis algorithm as runMetropolis but without any calculations or swaps
 void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterations) {
@@ -103,7 +123,7 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
 
 
 //Method using a Metropolis algorithm to iterate the two systems over random moves
-void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations) {
+vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations) {
     
     //Define some counters
     int accepted = 0;
@@ -111,12 +131,8 @@ void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, i
     int swapped = 0;
     
     //Set up array to keep track of integral summations for a set number of Z values
-    vector<complex<double>> sum_gx;
-    vector<complex<double>> sum_g2x;
-    for (int a=0; a<1; a++) {
-        sum_gx.push_back(0);
-        sum_g2x.push_back(0);
-    }
+    complex<double> sum_gx = complex<double>(0,0);
+    complex<double> sum_g2x = complex<double>(0,0);
     
     //Define current system
     vector<Point> R1(rPoints1);
@@ -224,8 +240,8 @@ void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, i
             else {
                 g = 0;
             }
-            sum_gx[0] += g;
-            sum_g2x[0] += pow(g,2);
+            sum_gx += g;
+            sum_g2x += pow(g,2);
                 
             iListR3.clear();
             iListR4.clear();
@@ -238,20 +254,14 @@ void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, i
         
     }
     //Calculate the error of each S2 point
-    vector<double> normIntegral;
-    for (int b=0; b<sum_gx.size(); b++) {
-        normIntegral.push_back((sum_gx[b].real() / accepted));
-    }
-    vector<double> normSquaredIntegral;
-    for (int i=0; i<sum_g2x.size(); i++) {
-        normSquaredIntegral.push_back(sum_g2x[i].real() / accepted);
-    }
+    complex<double> normIntegral = sum_gx / double(accepted);
     
-    vector<double> stdevS2;
-    for (int i=0; i<sum_gx.size(); i++) {
-        stdevS2.push_back((pow(normSquaredIntegral[i] - pow(normIntegral[i],2),0.5))/(pow(accepted,0.5)*normIntegral[i]));
-    }
-    vector<double> s2;
+    double normSquaredIntegral = sum_g2x.real() / accepted;
+    
+    
+    //double stdevS2 =(pow(normSquaredIntegral - pow(normIntegral,2),0.5))/(pow(accepted,0.5)*normIntegral);
+    
+    complex<double> s2 = -log(normIntegral);
     
     //Print properties of run
     cout << endl << "Number of accepted moves: " << accepted;
@@ -260,51 +270,39 @@ void runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, i
     cout << endl << "Number of swaps: " << swapped;
     
     //Print normalised integral and calculate S2 for each one
-    cout << endl << "Normalised integrals: ";
-    for (double d : normIntegral) {
-        cout << d << " ";
-        s2.push_back(-log(d));
-    }
+    cout << endl << "Normalised integral: ";
+    cout << normIntegral;
+    
     
     //Print S2 with the standard deviation
-    cout << endl << "S2 values: ";
-    for (int i = 0; i<s2.size(); i++) {
-        cout << s2[i] << "+/-" << stdevS2[i] << endl;
-    }
+    //cout << endl << "S2 value: ";
+    //cout << s2 << "+/-" << stdevS2 << endl;
+    
+    //Write results to file for plotting
+    
+    vector<double> s2Point;
+    //s2Point = {s2, stdevS2, double(R1.size())};
+    
+    return s2Point;
 }
 
+//Method to iterate runMetropolis over multiple N values and write it to file
+void iterateOverN (int max_n, double dr, int num_iterations) {
+    vector<vector<double>> s2Points;
+    for (int n=1; n<max_n+1; n++) {
+        vector<Point> R1 = initialiseSystem(n);
+        vector<Point> R2 = initialiseSystem(n);
+        runBurnIn(R1, R2, 0.1, 1000000);
+        cout << endl << n << endl;
+        vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
+        s2Points.push_back(s2Point);
+    }
+    string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
+   //writeMCToFile(s2Points, file_name);
+}
 
 int main(int argc, const char * argv[]) {
     
-    vector<Point> R1;
-    vector<Point> R2;
-    
-    double N = 5;
-    
-    for (int i=0; i<N; i++) {
-        
-        //Populate R1 with particles randomly placed within radius of 3-sigma from origin
-        double sigma = 1;
-        
-        double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
-        double radius1 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
-        
-        double x1 =  radius1 * cos(phi1);
-        double y1 = radius1 * sin(phi1);
-        R1.push_back(Point(x1,y1));
-        
-        //Repeat for R2
-        
-        double phi2 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
-        double radius2 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
-        
-        double x2 =  radius2 * cos(phi2);
-        double y2 = radius2 * sin(phi2);
-        R2.push_back(Point(x2,y2));
-    }
-    
-    runBurnIn(R1, R2, 0.1, 100000);
-
-    runMetropolis(R1, R2, 0.005, 100000);
+    iterateOverN(10, 0.08, 1000000);
     
 }

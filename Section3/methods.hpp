@@ -18,7 +18,7 @@ using namespace std;
 #define methods_hpp
 
 //Task 2 methods
-void writeMCToFile(vector<Point> list, vector<double> stdev, string name);
+void writeMCToFile(vector<vector<double>> list, string name);
 double calcJointProb (complex<double> psi1, complex<double> psi2);
 
 //Task 3 methods

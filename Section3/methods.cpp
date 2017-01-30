@@ -9,12 +9,11 @@
 #include "methods.hpp"
 
 //Method to write MC generated data to file, a vector of Points and a vector of stdev doubles
-void writeMCToFile(vector<Point> list, vector<double> stdev, string name) {
-    ofstream myfile("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section2/" + name);
+void writeMCToFile(vector<vector<double>> list, string name) {
+    ofstream myfile("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/" + name);
     if (myfile.is_open()) {
         for (int i=0; i<list.size(); i++) {
-            Point p = list[i];
-            myfile << p.x() << "," << p.y() << "," << stdev[i] << "\n";
+            myfile << (list[i])[0] << "," << (list[i])[1] << "," << (list[i])[2] << "\n";
         }
         myfile.close();
     }
