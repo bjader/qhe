@@ -198,9 +198,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             
             //The new moved system becomes our current system
             R1 = R3;
-            psi1 = psi3;
+            psi1 = createWaveFunctionTerm(R1, 0);
             R2 = R4;
-            psi2 = psi4;
+            psi2 = createWaveFunctionTerm(R2, 0);
             
             //We will keep using R3 and R4 as the system for our swap calculation
                 
@@ -229,10 +229,10 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                     R3[id_1].copy(R2[id_2]);
                     R4[id_2].copy(R1[id_1]);
                 }
-                //Recalculate the wavefunctions of R3 and R4 (after the swap)
+                //Recalculate the partial wavefunctions of R1,R2,R3,R4 (after the swap)
                     
-                psi3 = createWaveFunction(R3);
-                psi4 = createWaveFunction(R4);
+                psi3 = createWaveFunctionTerm(R3,0);      //We only need the partial WF as the exponential terms cancel
+                psi4 = createWaveFunctionTerm(R4,0);
                 g = (psi3 * psi4)/(psi1 * psi2);
                     
             }
@@ -287,9 +287,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
 }
 
 //Method to iterate runMetropolis over multiple N values and write it to file
-void iterateOverN (int max_n, double dr, int num_iterations) {
+void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     vector<vector<double>> s2Points;
-    for (int n=1; n<max_n+1; n++) {
+    for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
         runBurnIn(R1, R2, 0.1, 1000000);
@@ -297,12 +297,12 @@ void iterateOverN (int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-    string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
+   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
    //writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(10, 0.08, 1000000);
+    iterateOverN(3, 3, 0.1, 100000);
     
 }

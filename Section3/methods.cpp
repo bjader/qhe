@@ -51,7 +51,7 @@ complex<double> createWaveFunction(vector<Point> points) {
             complex<double> product_term = (z_i - z_j);
             //cout << endl << product_term;
             
-            if(product_term == (0.0,0.0)) {
+            if(product_term == complex<double>(0.0,0.0)) {
             }
             else {
                 product = product * product_term;
@@ -67,3 +67,51 @@ complex<double> createWaveFunction(vector<Point> points) {
 
     return Psi;
 }
+
+//Method to calculate only one term of the Laughlin wave function
+complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
+    
+    complex<double> Psi;
+    vector<complex<double>> zPoints;
+    
+    for (Point p : points) {
+        zPoints.push_back(complex<double>(p.x(),p.y()));
+    }
+    
+    //Initialise summation variables
+    complex<double> product = complex<double>(1.0,0.0);
+    double sum_square = 0;
+    
+    //For every point in the system
+    for (int i=0; i<zPoints.size(); i++) {
+        
+        complex<double> z_i = zPoints[i];
+        
+        for (int j=0; j<zPoints.size(); j++) {
+            
+            complex<double> z_j = zPoints[j];
+            complex<double> product_term = (z_i - z_j);
+            //cout << endl << product_term;
+            
+            if(product_term == complex<double>(0.0,0.0)) {
+            }
+            else {
+                product = product * product_term;
+            }
+            
+        }
+        
+        //Add |Z|^2 to the exponent sum
+        sum_square += norm(z_i);
+    }
+    
+    complex<double> exp_term = exp(-sum_square);
+    
+    if (option) {
+        return exp_term;
+    }
+    else {
+        return product;
+    }
+}
+
