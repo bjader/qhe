@@ -38,7 +38,7 @@ vector<Point> initialiseSystem (int N) {
     for (int i=0; i<N; i++) {
         
         //Populate R1 with particles randomly placed within radius of 3-sigma from origin
-        double sigma = 1;
+        double sigma = 1/sqrt(2);
         
         double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
         double radius1 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
@@ -139,6 +139,17 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     vector<Point> R2(rPoints2);
     
     for (int i = 0; i<num_iterations; i++) {
+        
+        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 1000 iterations
+        if (i % 1000 == 0 && i!= 0) {
+            double acceptance_rate = (double(accepted)/(accepted + rejected))*100;
+            if (acceptance_rate < 30) {
+                dr = dr - (dr/10);
+            }
+            else if (acceptance_rate > 80) {
+                dr = dr + (dr/10);
+            }
+        }
         
         //Calculate probability of current system
         complex<double> psi1 = createWaveFunction(rPoints1);
@@ -254,14 +265,14 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         
     }
     //Calculate the error of each S2 point
-    complex<double> normIntegral = sum_gx / double(accepted);
-    
+    complex<double> normComplexIntegral = sum_gx / double(accepted);
+    double normIntegral = normComplexIntegral.real();
+
     double normSquaredIntegral = sum_g2x.real() / accepted;
     
+    double stdevS2 =(pow(normSquaredIntegral - pow(normIntegral,2),0.5))/(pow(accepted,0.5)*normIntegral);
     
-    //double stdevS2 =(pow(normSquaredIntegral - pow(normIntegral,2),0.5))/(pow(accepted,0.5)*normIntegral);
-    
-    complex<double> s2 = -log(normIntegral);
+    double s2 = -log(normIntegral);
     
     //Print properties of run
     cout << endl << "Number of accepted moves: " << accepted;
@@ -270,18 +281,18 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     cout << endl << "Number of swaps: " << swapped;
     
     //Print normalised integral and calculate S2 for each one
-    cout << endl << "Normalised integral: ";
-    cout << normIntegral;
+    cout << endl << "Normalised complex integral: ";
+    cout << normComplexIntegral;
     
     
     //Print S2 with the standard deviation
-    //cout << endl << "S2 value: ";
-    //cout << s2 << "+/-" << stdevS2 << endl;
+    cout << endl << "S2 value: ";
+    cout << s2 << "+/-" << stdevS2 << endl;
     
     //Write results to file for plotting
     
     vector<double> s2Point;
-    //s2Point = {s2, stdevS2, double(R1.size())};
+    s2Point = {s2, stdevS2, double(R1.size())};
     
     return s2Point;
 }
@@ -297,12 +308,12 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
-   //writeMCToFile(s2Points, file_name);
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
+   writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(3, 3, 0.1, 100000);
+    iterateOverN(1, 10, 0.1, 1000000);
     
 }
