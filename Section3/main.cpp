@@ -22,7 +22,7 @@ using namespace Eigen;
 
 //Global constants
 //const complex<double> i(0.0,1.0);
-double L = 5;
+double L = 10;
 
 //Global objects
 random_device rd;
@@ -127,7 +127,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     
     //Define some counters
     int accepted = 0;
+    int accepted_1k = 0;
     int rejected = 0;
+    int rejected_1k = 0;
     int swapped = 0;
     
     //Set up array to keep track of integral summations for a set number of Z values
@@ -140,15 +142,27 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     
     for (int i = 0; i<num_iterations; i++) {
         
-        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 1000 iterations
-        if (i % 1000 == 0 && i!= 0) {
-            double acceptance_rate = (double(accepted)/(accepted + rejected))*100;
+        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
+        if (i % 100000 == 0 && i!= 0) {
+            double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
+            
+            //If too low e.g. for 20%, adjusts by - (2*dr)/5
             if (acceptance_rate < 30) {
-                dr = dr - (dr/10);
+                dr = dr - ((dr/10)*(((30-acceptance_rate)/10)+1));
             }
-            else if (acceptance_rate > 80) {
-                dr = dr + (dr/10);
+            
+            //Reset dr if we get into a local minima stuck position
+            if (acceptance_rate < 2) {
+               // dr = 0.1;
             }
+            else if (acceptance_rate > 70) {
+                dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
+            }
+            //cout << endl << acceptance_rate;
+            //cout << endl << dr;
+            accepted_1k = 0;
+            rejected_1k = 0;
+            
         }
         
         //Calculate probability of current system
@@ -203,6 +217,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         if (alpha < lambda) {
             
             accepted += 1;
+            accepted_1k += 1;
             complex<double> g;
             vector<int> iListR3;
             vector<int> iListR4;
@@ -261,6 +276,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         //Else reject the new configuration
         else {
             rejected +=1;
+            rejected_1k += 1;
         }
         
     }
@@ -308,12 +324,12 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k.txt";
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k2.txt";
    writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(1, 10, 0.1, 1000000);
+    iterateOverN(2, 10, 0.1, 10000000);
     
 }
