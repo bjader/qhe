@@ -22,7 +22,7 @@ using namespace Eigen;
 
 //Global constants
 //const complex<double> i(0.0,1.0);
-double L = 10;
+double L = 15;
 
 //Global objects
 random_device rd;
@@ -53,11 +53,6 @@ vector<Point> initialiseSystem (int N) {
 //Method to "burn in" a random system to more accurately represent the true distribution
 //Runs same Metropolis algorithm as runMetropolis but without any calculations or swaps
 void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterations) {
-    
-    random_device rd;
-    //Mersenne Twister algorithm, default seed
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(0,1);
     
     for (int i = 0; i<num_iterations; i++) {
         
@@ -120,6 +115,64 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         
     }
 }
+
+//Method to find the density profile of N-particles
+
+void densityProfile (vector<Point> R1, double dr, int num_iterations, double width) {
+    
+    vector<int> numParticles;
+    for (int i=0; i<(L/width); i++) {
+        numParticles.push_back(0);
+    }
+    
+    for (int i = 0; i<num_iterations; i++) {
+        
+        //Calculate probability of current system
+        complex<double> psi1 = createWaveFunction(R1);
+        double p = norm(psi1);
+        
+        //Create empty test system
+        vector<Point> R3;
+        
+        //Populate new system R3 with original particles from R1, plus a random displacement of length dr
+        for (Point p1 : R1) {
+            double phi = (2*M_PI) * dis(gen);
+            double x = p1.x() + (dr * cos(phi));
+            double y = p1.y() + (dr * sin(phi));
+            
+            //If a particle moves outside the box, instead make it reappear out the opposite side
+            if (x > (L/2)) { x = x - L;}
+            if (x < (-L/2)) {x = x + L;}
+            if (y > (L/2)) { y = y - L;}
+            if (y < (-L/2)) { y = y + L;}
+            
+            R3.push_back(Point(x,y));
+        }
+        
+        //Calculate probability of new system
+        complex<double> psi3 = createWaveFunction(R3);
+        double p_new = norm(psi3);
+        
+        //Accept in accordance to Hastings-Metropolis method
+        double lambda = min(p_new/p,1.0);
+        double alpha = dis(gen);
+        
+        //If accept the new configuration
+        if (alpha < lambda) {
+            
+            R1 = R3;
+            psi1 = psi3;
+            
+            for (Point p1 : R1) {
+                int elementID = floor((p1.length()/width));
+                numParticles[elementID] += 1;
+            }
+            
+        }
+        
+    }
+}
+
 
 
 //Method using a Metropolis algorithm to iterate the two systems over random moves
@@ -324,12 +377,12 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000) + "k2.txt";
-   writeMCToFile(s2Points, file_name);
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(L) + ".txt";
+   //writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(2, 10, 0.1, 10000000);
+    iterateOverN(2, 10, 0.1, 100000);
     
 }
