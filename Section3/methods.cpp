@@ -20,6 +20,19 @@ void writeMCToFile(vector<vector<double>> list, string name) {
     else { cout << "Writing to file failed";}
 }
 
+//Method to write a vector of points to comma seperated file
+void writeToFile(vector<Point> list, string name) {
+    ofstream myfile("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/" + name);
+    if (myfile.is_open()) {
+        for (Point p : list) {
+            myfile << p.x() << "," << p.y() << "\n";
+        }
+        myfile.close();
+    }
+    else { cout << "Writing to file failed";}
+}
+
+
 //Method to calculate the probability over two given wave function: p = |psi1|^2 * |psi2|^2
 double calcJointProb (complex<double> psi1, complex<double> psi2) {
     

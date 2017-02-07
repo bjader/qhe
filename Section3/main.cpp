@@ -22,7 +22,7 @@ using namespace Eigen;
 
 //Global constants
 //const complex<double> i(0.0,1.0);
-double L = 15;
+double L = 10;
 
 //Global objects
 random_device rd;
@@ -118,10 +118,11 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
 
 //Method to find the density profile of N-particles
 
-void densityProfile (vector<Point> R1, double dr, int num_iterations, double width) {
+vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, double width) {
     
-    vector<int> numParticles;
-    for (int i=0; i<(L/width); i++) {
+    vector<double> numParticles;
+    int accepted = 0;
+    for (int i=0; i<=(L/width); i++) {
         numParticles.push_back(0);
     }
     
@@ -160,6 +161,8 @@ void densityProfile (vector<Point> R1, double dr, int num_iterations, double wid
         //If accept the new configuration
         if (alpha < lambda) {
             
+            accepted += 1;
+            
             R1 = R3;
             psi1 = psi3;
             
@@ -171,9 +174,16 @@ void densityProfile (vector<Point> R1, double dr, int num_iterations, double wid
         }
         
     }
+    
+    vector<Point> normNumParticles;
+    for (double i=0; i<numParticles.size(); i++) {
+        double normNum = numParticles[i]/(accepted*R1.size());
+        Point slice = Point(normNum,width*i);
+        normNumParticles.push_back(slice);
+    }
+    cout << accepted << endl;
+    return normNumParticles;
 }
-
-
 
 //Method using a Metropolis algorithm to iterate the two systems over random moves
 vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations) {
@@ -383,6 +393,13 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(2, 10, 0.1, 100000);
+    //iterateOverN(2, 10, 0.1, 100000);
+    
+    vector<Point> R1 = initialiseSystem(5);
+    vector<Point> R2 = initialiseSystem(5);
+    runBurnIn(R1, R2, 0.1, 1000000);
+    vector<Point> density = densityProfile(R1, 0.1, 10000, 0.1);
+    string file_name = "density_width" + to_string(density[1].y()) + "_L" + to_string(L) + ".txt";
+    writeToFile(density, file_name);
     
 }
