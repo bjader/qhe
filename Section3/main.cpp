@@ -177,7 +177,9 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
     
     vector<Point> normNumParticles;
     for (double i=0; i<numParticles.size(); i++) {
-        double normNum = numParticles[i]/(accepted*R1.size());
+        double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
+        double norm_factor = accepted*R1.size()*area;
+        double normNum = numParticles[i]/(norm_factor);
         Point slice = Point(normNum,width*i);
         normNumParticles.push_back(slice);
     }
@@ -206,7 +208,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     for (int i = 0; i<num_iterations; i++) {
         
         //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
-        if (i % 100000 == 0 && i!= 0) {
+        if (i % 10000 == 0 && i!= 0) {
             double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
             
             //If too low e.g. for 20%, adjusts by - (2*dr)/5
@@ -221,16 +223,16 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             else if (acceptance_rate > 70) {
                 dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
             }
-            //cout << endl << acceptance_rate;
-            //cout << endl << dr;
+            cout << endl << "Acceptance rate: " << acceptance_rate;
+            cout << endl << "dr: " << dr;
             accepted_1k = 0;
             rejected_1k = 0;
             
         }
         
         //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(rPoints1);
-        complex<double> psi2 = createWaveFunction(rPoints2);
+        complex<double> psi1 = createWaveFunction(R1);
+        complex<double> psi2 = createWaveFunction(R2);
         double p = calcJointProb(psi1, psi2);
         
         //Create empty test system
@@ -274,6 +276,10 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         
         //Accept in accordance to Hastings-Metropolis method
         double lambda = min(p_new/p,1.0);
+        if (i % 10000 == 0 && i!= 0) {
+            cout << endl << " lambda :" << lambda;
+            cout << endl << "pnew: " << p_new << " pold: " << p << endl;
+        }
         double alpha = dis(gen);
         
         //If accept the new configuration
@@ -357,6 +363,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     cout << endl << "Number of accepted moves: " << accepted;
     cout << endl << "Number of rejected moves: " << rejected;
     cout << endl << "Acceptance rate: " << (double(accepted)/(accepted + rejected))*100 << "%";
+    cout << endl << "Final dr:" << dr;
     cout << endl << "Number of swaps: " << swapped;
     
     //Print normalised integral and calculate S2 for each one
@@ -391,15 +398,24 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
    //writeMCToFile(s2Points, file_name);
 }
 
+void iterateDensityProfile(int n, int n_max) {
+    
+    for (int n; n<n_max; n++) {
+        
+        double num_iterations = 10000000;
+        vector<Point> R1 = initialiseSystem(n);
+        vector<Point> R2 = initialiseSystem(n);
+        runBurnIn(R1, R2, 0.1, 1000000);
+        vector<Point> density = densityProfile(R1, 0.00001, num_iterations, 0.1);
+        string file_name = "density_n" + to_string(n) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m.txt";
+        writeToFile(density, file_name);
+    }
+
+}
+
 int main(int argc, const char * argv[]) {
     
-    //iterateOverN(2, 10, 0.1, 100000);
+    iterateOverN(2, 2, 5, 1000000);
     
-    vector<Point> R1 = initialiseSystem(5);
-    vector<Point> R2 = initialiseSystem(5);
-    runBurnIn(R1, R2, 0.1, 1000000);
-    vector<Point> density = densityProfile(R1, 0.1, 10000, 0.1);
-    string file_name = "density_width" + to_string(density[1].y()) + "_L" + to_string(L) + ".txt";
-    writeToFile(density, file_name);
     
 }
