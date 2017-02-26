@@ -122,11 +122,36 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
     
     vector<double> numParticles;
     int accepted = 0;
+    int accepted_1k = 0;
+    int rejected_1k = 0;
     for (int i=0; i<=(L/width); i++) {
         numParticles.push_back(0);
     }
     
     for (int i = 0; i<num_iterations; i++) {
+        
+        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
+        if (i % 10 == 0 && i!= 0) {
+            double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
+            
+            //If too low e.g. for 20%, adjusts by - (2*dr)/5
+            if (acceptance_rate < 30) {
+                dr = dr - ((dr/10)*(((30-acceptance_rate)/10)+1));
+            }
+            
+            //Reset dr if we get into a local minima stuck position
+            if (acceptance_rate < 2) {
+                // dr = 0.1;
+            }
+            else if (acceptance_rate > 70) {
+                dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
+            }
+            //cout << endl << "Acceptance rate: " << acceptance_rate;
+            //cout << endl << "dr: " << dr;
+            accepted_1k = 0;
+            rejected_1k = 0;
+            
+        }
         
         //Calculate probability of current system
         complex<double> psi1 = createWaveFunction(R1);
@@ -162,6 +187,7 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
         if (alpha < lambda) {
             
             accepted += 1;
+            accepted_1k += 1;
             
             R1 = R3;
             psi1 = psi3;
@@ -172,13 +198,17 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
             }
             
         }
+        else {
+            rejected_1k +=1;
+        }
         
     }
     
     vector<Point> normNumParticles;
     for (double i=0; i<numParticles.size(); i++) {
-        double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
-        double norm_factor = accepted*R1.size()*area;
+        //double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
+        double radius = width;
+        double norm_factor = accepted*R1.size()*radius;
         double normNum = numParticles[i]/(norm_factor);
         Point slice = Point(normNum,width*i);
         normNumParticles.push_back(slice);
@@ -208,7 +238,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     for (int i = 0; i<num_iterations; i++) {
         
         //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
-        if (i % 10000 == 0 && i!= 0) {
+        if (i % 10 == 0 && i!= 0) {
             double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
             
             //If too low e.g. for 20%, adjusts by - (2*dr)/5
@@ -223,8 +253,8 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             else if (acceptance_rate > 70) {
                 dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
             }
-            cout << endl << "Acceptance rate: " << acceptance_rate;
-            cout << endl << "dr: " << dr;
+            //cout << endl << "Acceptance rate: " << acceptance_rate;
+            //cout << endl << "dr: " << dr;
             accepted_1k = 0;
             rejected_1k = 0;
             
@@ -275,11 +305,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         double p_new = calcJointProb(psi3,psi4);
         
         //Accept in accordance to Hastings-Metropolis method
+        cout << endl << p << endl;
+        cout << endl << p_new << endl;
         double lambda = min(p_new/p,1.0);
-        if (i % 10000 == 0 && i!= 0) {
-            cout << endl << " lambda :" << lambda;
-            cout << endl << "pnew: " << p_new << " pold: " << p << endl;
-        }
         double alpha = dis(gen);
         
         //If accept the new configuration
@@ -389,33 +417,72 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        runBurnIn(R1, R2, 0.1, 1000000);
+        //runBurnIn(R1, R2, 0.1, 1000000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(L) + ".txt";
+   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + ".txt";
    //writeMCToFile(s2Points, file_name);
 }
 
-void iterateDensityProfile(int n, int n_max) {
+vector<vector<double>> iterateDensityProfile(int n, int n_max) {
     
-    for (int n; n<n_max; n++) {
-        
+    vector<vector<double>> r0List;
+    
+    for (int j=n; j<n_max+1; j++) {
+        cout << j << endl;
         double num_iterations = 10000000;
-        vector<Point> R1 = initialiseSystem(n);
-        vector<Point> R2 = initialiseSystem(n);
+        vector<Point> R1 = initialiseSystem(j);
+        vector<Point> R2 = initialiseSystem(j);
         runBurnIn(R1, R2, 0.1, 1000000);
-        vector<Point> density = densityProfile(R1, 0.00001, num_iterations, 0.1);
-        string file_name = "density_n" + to_string(n) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m.txt";
+        vector<Point> density = densityProfile(R1, 0.1, num_iterations, 0.1);
+        
+        //If plotting total density profile
+        string file_name = "density_n" + to_string(j) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m.txt";
         writeToFile(density, file_name);
+        
+        //If plotting rho_0 or r_0
+        /*Point r0 = Point(0,0); //initialise
+        Point rho_max = Point(0,0);
+        double rho_target = density[0].x();
+        
+        //Find maximum point
+        for (Point p : density) {
+            if (p.x() > rho_max.x()) {
+                rho_max = p;
+            }
+        }
+        
+        for (Point p : density) {
+            if (abs(p.x()-rho_target) < abs(r0.x()-rho_target) && p.y() > rho_max.y()) {
+                r0 = p;
+            }
+        }
+        vector<double> r0Point = {double(j),r0.x(),r0.y()};
+        r0List.push_back(r0Point);*/
     }
+    
+    return r0List;
 
 }
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(2, 2, 5, 1000000);
+    iterateOverN(16, 16, 0.1, 1000);
+    
+    //iterateDensityProfile(2, 20);
+    
+    /*vector<Point> r0List;
+    vector<Point> rho0List;
+    vector<vector<double>> r0PointList = iterateDensityProfile(16,20);
+    for (vector<double> d : r0PointList) {
+        r0List.push_back(Point(d[0],d[2]));
+        rho0List.push_back(Point(d[0],d[1]));
+    }
+    writeToFile(r0List, "r06_vs_n_005.txt");
+    writeToFile(rho0List, "rho06_vs_n_005.txt");*/
+
     
     
 }
