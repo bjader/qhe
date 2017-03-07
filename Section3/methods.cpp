@@ -42,7 +42,8 @@ double calcJointProb (complex<double> psi1, complex<double> psi2) {
 //Method to create a Laughlin wavefunction based off input coordinates in 2-d space
 complex<double> createWaveFunction(vector<Point> points) {
     
-    double scale_factor = 2;
+    double scale_factor = 1;
+    int m=3;
     
     complex<double> Psi;
     vector<complex<double>> zPoints;
@@ -63,7 +64,7 @@ complex<double> createWaveFunction(vector<Point> points) {
         for (int j=0; j<zPoints.size(); j++) {
             
             complex<double> z_j = zPoints[j];
-            complex<double> product_term = (z_i - z_j);
+            complex<double> product_term = pow((z_i - z_j),m);
             //cout << endl << product_term;
             
             if(product_term == complex<double>(0.0,0.0)) {
@@ -86,7 +87,7 @@ complex<double> createWaveFunction(vector<Point> points) {
 //Method to calculate only one term of the Laughlin wave function
 complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
     
-    double scale_factor = 2;
+    double scale_factor = 1.9;
     
     complex<double> Psi;
     vector<complex<double>> zPoints;

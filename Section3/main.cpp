@@ -37,11 +37,11 @@ vector<Point> initialiseSystem (int N) {
     
     for (int i=0; i<N; i++) {
         
-        //Populate R1 with particles randomly placed within radius of 3-sigma from origin
-        double sigma = 1/sqrt(2);
+        //Populate R1 with particles randomly placed within radius of 3sqrt(N)-sigma from origin
+        double sigma = (1/sqrt(2))*sqrt(N);
         
         double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
-        double radius1 = (dis(gen) * 3 * sigma); //Random radius between 0 -> 3-sigma
+        double radius1 = (dis(gen) * 4 * sigma); //Random radius between 0 -> 3-sigma
         
         double x1 =  radius1 * cos(phi1);
         double y1 = radius1 * sin(phi1);
@@ -238,7 +238,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     for (int i = 0; i<num_iterations; i++) {
         
         //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
-        if (i % 10 == 0 && i!= 0) {
+        if (i % 1000 == 0 && i!= 0) {
             double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
             
             //If too low e.g. for 20%, adjusts by - (2*dr)/5
@@ -417,7 +417,7 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        //runBurnIn(R1, R2, 0.1, 1000000);
+        //runBurnIn(R1, R2, 0.1, 10000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
@@ -469,7 +469,7 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(16, 16, 0.1, 1000);
+    iterateOverN(15, 15, 0.1, 5);
     
     //iterateDensityProfile(2, 20);
     
