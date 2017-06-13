@@ -59,8 +59,8 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         //Calculate probability of current system
         complex<double> psi1 = createWaveFunction(R1);
         complex<double> psi2 = createWaveFunction(R2);
-        double p = calcJointProb(psi1, psi2);
-        cout << p << endl;
+        double p = norm(psi1)*norm(psi2);
+        //cout << p << endl;
         
         //Create empty test system
         vector<Point> R3;
@@ -99,7 +99,7 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         //Calculate probability of new system
         complex<double> psi3 = createWaveFunction(R3);
         complex<double> psi4 = createWaveFunction(R4);
-        double p_new = calcJointProb(psi3,psi4);
+        double p_new = norm(psi3)*norm(psi4);
         
         //Accept in accordance to Hastings-Metropolis method
         double lambda = min(p_new/p,1.0);
@@ -257,14 +257,15 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             
         }
         //Output progress in increments of 10%
-        //if (i % (num_iterations/10) == 0 && i!= 0) {
-        //    cout << double((i*100.0/num_iterations)) << "% " << flush;
-        //}
+        if (i % (num_iterations/10) == 0 && i!= 0) {
+            cout << double((i*100.0/num_iterations)) << "% " << flush;
+        }
         
         //Calculate probability of current system
         complex<double> psi1 = createWaveFunction(R1);
         complex<double> psi2 = createWaveFunction(R2);
-        double p = calcJointProb(psi1, psi2);
+        double p = log(norm(psi1)) * log(norm(psi2));//Add a log factor to avoid reaching max int limit
+        //cout << "p: " << p << endl;
         
         //Create empty test system
         vector<Point> R3;
@@ -303,7 +304,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         //Calculate probability of new system
         complex<double> psi3 = createWaveFunction(R3);
         complex<double> psi4 = createWaveFunction(R4);
-        double p_new = calcJointProb(psi3,psi4);
+        double p_new = log(norm(psi3))*log(norm(psi4));
         
         //Accept in accordance to Hastings-Metropolis method
         double lambda = min(p_new/p,1.0);
@@ -356,7 +357,8 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                 psi3 = createWaveFunctionTerm(R3,0);      //We only need the partial WF as the exponential terms cancel
                 psi4 = createWaveFunctionTerm(R4,0);
                 g = (psi3 * psi4)/(psi1 * psi2);
-                    
+                cout << psi3*psi4 << endl;
+                
             }
             //If we didnt perform the swap, dont add to the integral (dirac delta factor)
             else {
@@ -402,7 +404,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     cout << endl << "S2 value: ";
     cout << s2 << "+/-" << stdevS2 << endl;
     
-    //Write results to file for plotting
+    //Return a result of the form (S2_value, error, number of particles)
     
     vector<double> s2Point;
     s2Point = {s2, stdevS2, double(R1.size())};
@@ -422,7 +424,7 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         s2Points.push_back(s2Point);
     }
    string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m3.txt";
-   //writeMCToFile(s2Points, file_name);
+   writeMCToFile(s2Points, file_name);
 }
 
 vector<vector<double>> iterateDensityProfile(int n, int n_max) {
@@ -469,9 +471,8 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
 int main(int argc, const char * argv[]) {
     
     //Testing probabilities of large N systems
-    int n = 16;
+    int n = 17;
     vector<Point> R1 = initialiseSystem(n);
     vector<Point> R2 = initialiseSystem(n);
-    runBurnIn(R1, R2, 0.1, 100);
-    
+    iterateOverN(n, 20, 0.1, 1000000);
 }
