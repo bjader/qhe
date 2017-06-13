@@ -20,7 +20,6 @@ using namespace std;
 //Task 2 methods
 void writeMCToFile(vector<vector<double>> list, string name);
 void writeToFile(vector<Point> list, string name);
-double calcJointProb (complex<double> psi1, complex<double> psi2);
 
 //Task 3 methods
 complex<double> createWaveFunction(vector<Point> points);

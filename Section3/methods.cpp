@@ -34,13 +34,6 @@ void writeToFile(vector<Point> list, string name) {
     else { cout << "Writing to file failed";}
 }
 
-
-//Method to calculate the probability over two given wave function: p = |psi1|^2 * |psi2|^2
-double calcJointProb (complex<double> psi1, complex<double> psi2) {
-    
-    return norm(psi1) * norm(psi2);
-}
-
 //Method to create a Laughlin wavefunction based off input coordinates in 2-d space
 complex<double> createWaveFunction(vector<Point> points) {
     
