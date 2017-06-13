@@ -11,7 +11,6 @@
 #include <math.h>
 #include <stdio.h>
 
-
 //Constructor
 Point::Point(double x, double y) {
     xval = x;

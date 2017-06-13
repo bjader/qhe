@@ -38,10 +38,10 @@ vector<Point> initialiseSystem (int N) {
     for (int i=0; i<N; i++) {
         
         //Populate R1 with particles randomly placed within radius of 3sqrt(N)-sigma from origin
-        double sigma = (1/sqrt(2))*sqrt(N);
+        double sigma = 1/sqrt(2) * sqrt(N);
         
         double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
-        double radius1 = (dis(gen) * 4 * sigma); //Random radius between 0 -> 3-sigma
+        double radius1 = (dis(gen) * sigma); //Random radius between 0 -> 3-sigma
         
         double x1 =  radius1 * cos(phi1);
         double y1 = radius1 * sin(phi1);
@@ -60,6 +60,7 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         complex<double> psi1 = createWaveFunction(R1);
         complex<double> psi2 = createWaveFunction(R2);
         double p = calcJointProb(psi1, psi2);
+        cout << p << endl;
         
         //Create empty test system
         vector<Point> R3;
@@ -237,7 +238,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     
     for (int i = 0; i<num_iterations; i++) {
         
-        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 100000 iterations
+        //Self correcting acceptance rate to keep within 30-70%. Adjusts by factor of dr/10, checking each 1000 iterations
         if (i % 1000 == 0 && i!= 0) {
             double acceptance_rate = (double(accepted_1k)/(accepted_1k + rejected_1k))*100;
             
@@ -246,10 +247,6 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                 dr = dr - ((dr/10)*(((30-acceptance_rate)/10)+1));
             }
             
-            //Reset dr if we get into a local minima stuck position
-            if (acceptance_rate < 2) {
-               // dr = 0.1;
-            }
             else if (acceptance_rate > 70) {
                 dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
             }
@@ -259,6 +256,10 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             rejected_1k = 0;
             
         }
+        //Output progress in increments of 10%
+        //if (i % (num_iterations/10) == 0 && i!= 0) {
+        //    cout << double((i*100.0/num_iterations)) << "% " << flush;
+        //}
         
         //Calculate probability of current system
         complex<double> psi1 = createWaveFunction(R1);
@@ -305,8 +306,6 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         double p_new = calcJointProb(psi3,psi4);
         
         //Accept in accordance to Hastings-Metropolis method
-        cout << endl << p << endl;
-        cout << endl << p_new << endl;
         double lambda = min(p_new/p,1.0);
         double alpha = dis(gen);
         
@@ -417,12 +416,12 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        //runBurnIn(R1, R2, 0.1, 10000);
+        runBurnIn(R1, R2, 0.1, 1000000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + ".txt";
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m3.txt";
    //writeMCToFile(s2Points, file_name);
 }
 
@@ -469,20 +468,10 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
 
 int main(int argc, const char * argv[]) {
     
-    iterateOverN(15, 15, 0.1, 5);
-    
-    //iterateDensityProfile(2, 20);
-    
-    /*vector<Point> r0List;
-    vector<Point> rho0List;
-    vector<vector<double>> r0PointList = iterateDensityProfile(16,20);
-    for (vector<double> d : r0PointList) {
-        r0List.push_back(Point(d[0],d[2]));
-        rho0List.push_back(Point(d[0],d[1]));
-    }
-    writeToFile(r0List, "r06_vs_n_005.txt");
-    writeToFile(rho0List, "rho06_vs_n_005.txt");*/
-
-    
+    //Testing probabilities of large N systems
+    int n = 16;
+    vector<Point> R1 = initialiseSystem(n);
+    vector<Point> R2 = initialiseSystem(n);
+    runBurnIn(R1, R2, 0.1, 100);
     
 }

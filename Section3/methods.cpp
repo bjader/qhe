@@ -8,6 +8,8 @@
 
 #include "methods.hpp"
 
+int m = 1;
+
 //Method to write MC generated data to file, a vector of Points and a vector of stdev doubles
 void writeMCToFile(vector<vector<double>> list, string name) {
     ofstream myfile("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/" + name);
@@ -42,8 +44,7 @@ double calcJointProb (complex<double> psi1, complex<double> psi2) {
 //Method to create a Laughlin wavefunction based off input coordinates in 2-d space
 complex<double> createWaveFunction(vector<Point> points) {
     
-    double scale_factor = 1;
-    int m=3;
+    double scale_factor = 1.0;
     
     complex<double> Psi;
     vector<complex<double>> zPoints;
@@ -87,7 +88,7 @@ complex<double> createWaveFunction(vector<Point> points) {
 //Method to calculate only one term of the Laughlin wave function
 complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
     
-    double scale_factor = 1.9;
+    double scale_factor = 1.0;
     
     complex<double> Psi;
     vector<complex<double>> zPoints;
@@ -108,7 +109,7 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
         for (int j=0; j<zPoints.size(); j++) {
             
             complex<double> z_j = zPoints[j];
-            complex<double> product_term = (z_i - z_j);
+            complex<double> product_term = pow((z_i - z_j),m);
             
             if(product_term == complex<double>(0.0,0.0)) {
             }
@@ -124,6 +125,7 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
     
     complex<double> exp_term = exp(-sum_square);
     
+    //Return the desired part of the wave function
     if (option) {
         return exp_term;
     }
