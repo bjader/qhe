@@ -37,8 +37,6 @@ void writeToFile(vector<Point> list, string name) {
 //Method to create a Laughlin wavefunction based off input coordinates in 2-d space
 complex<double> createWaveFunction(vector<Point> points) {
     
-    double scale_factor = 1.0;
-    
     complex<double> Psi;
     vector<complex<double>> zPoints;
     
@@ -64,7 +62,7 @@ complex<double> createWaveFunction(vector<Point> points) {
             if(product_term == complex<double>(0.0,0.0)) {
             }
             else {
-                product = product * (product_term/scale_factor);
+                product = product * (product_term);
             }
         
         }
@@ -80,8 +78,6 @@ complex<double> createWaveFunction(vector<Point> points) {
 
 //Method to calculate only one term of the Laughlin wave function
 complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
-    
-    double scale_factor = 1.0;
     
     complex<double> Psi;
     vector<complex<double>> zPoints;
@@ -107,7 +103,7 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
             if(product_term == complex<double>(0.0,0.0)) {
             }
             else {
-                product = product * (product_term/scale_factor);
+                product = product * (product_term);
             }
             
         }
@@ -125,5 +121,45 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
     else {
         return product;
     }
+}
+
+//Method to generate log(|Psi|^2) directly without calculating |Psi|^2 first
+//Useful when |Psi|^2 is greather than 10^300 and is classified as inf
+
+
+double createLogProbability(vector<Point> points) {
+    
+    double logPsiSquared;
+    vector<complex<double>> zPoints;
+    
+    for (Point p : points) {
+        zPoints.push_back(complex<double>(p.x(),p.y()));
+    }
+    
+    //Initialise summation variables
+    double absTermSum = 0;
+    double normTermSum = 0;
+    
+    //For every point in the system
+    for (int i=0; i<zPoints.size(); i++) {
+        
+        complex<double> z_i = zPoints[i];
+        normTermSum += norm(z_i);
+        
+        for (int j=i+1; j<zPoints.size(); j++) {
+            
+            complex<double> z_j = zPoints[j];
+            double absTerm = log(abs(z_i - z_j));
+            
+            absTermSum += absTerm;
+            
+        }
+    }
+    
+    //log(|Psi|^2) = 2m*SUM_i<j(ln|zi-zj|) - 2*SUM_i(|zi|^2)
+    logPsiSquared = 2*m*absTermSum - 2*normTermSum;
+    
+    return logPsiSquared;
+    
 }
 

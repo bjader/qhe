@@ -57,10 +57,8 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
     for (int i = 0; i<num_iterations; i++) {
         
         //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(R1);
-        complex<double> psi2 = createWaveFunction(R2);
-        double p = norm(psi1)*norm(psi2);
-        //cout << p << endl;
+        double logNormPsi1 = createLogProbability(R1);
+        double logNormPsi2 = createLogProbability(R2);
         
         //Create empty test system
         vector<Point> R3;
@@ -97,21 +95,18 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         }
         
         //Calculate probability of new system
-        complex<double> psi3 = createWaveFunction(R3);
-        complex<double> psi4 = createWaveFunction(R4);
-        double p_new = norm(psi3)*norm(psi4);
+        double logNormPsi3 = createLogProbability(R3);
+        double logNormPsi4 = createLogProbability(R4);
         
         //Accept in accordance to Hastings-Metropolis method
-        double lambda = min(p_new/p,1.0);
+        double lambda = min((logNormPsi3 + logNormPsi4 - logNormPsi1 -logNormPsi2),0.0);
         double alpha = dis(gen);
         
         //If accept the new configuration
-        if (alpha < lambda) {
+        if (log(alpha) < lambda) {
             
             R1 = R3;
-            psi1 = psi3;
             R2 = R4;
-            psi2 = psi4;
         }
         
     }
@@ -261,11 +256,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             cout << double((i*100.0/num_iterations)) << "% " << flush;
         }
         
-        //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(R1);
-        complex<double> psi2 = createWaveFunction(R2);
-        double p = log(norm(psi1)) * log(norm(psi2));//Add a log factor to avoid reaching max int limit
-        //cout << "p: " << p << endl;
+        //Calculate log probability of current system
+        double logNormPsi1 = createLogProbability(R1);
+        double logNormPsi2 = createLogProbability(R2);
         
         //Create empty test system
         vector<Point> R3;
@@ -302,28 +295,30 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         }
         
         //Calculate probability of new system
-        complex<double> psi3 = createWaveFunction(R3);
-        complex<double> psi4 = createWaveFunction(R4);
-        double p_new = log(norm(psi3))*log(norm(psi4));
+        double logNormPsi3 = createLogProbability(R3);
+        double logNormPsi4 = createLogProbability(R4);
         
         //Accept in accordance to Hastings-Metropolis method
-        double lambda = min(p_new/p,1.0);
+        
+        double lambda = min((logNormPsi3 + logNormPsi4 - logNormPsi1 -logNormPsi2),0.0);
         double alpha = dis(gen);
         
         //If accept the new configuration
-        if (alpha < lambda) {
+        if (log(alpha) < lambda) {
             
             accepted += 1;
-            accepted_1k += 1;
+            accepted_1k += 1;   //This is used to monitor the acceptance rate every 1000 iterations and adjust  (see self correcting method above)
             complex<double> g;
             vector<int> iListR3;
             vector<int> iListR4;
             
             //The new moved system becomes our current system
             R1 = R3;
-            psi1 = createWaveFunctionTerm(R1, 0);
             R2 = R4;
-            psi2 = createWaveFunctionTerm(R2, 0);
+            
+            //Generate wave functions of this new system for calculation of g
+            complex<double> psi1 = createWaveFunctionTerm(R1, 0);
+            complex<double> psi2 = createWaveFunctionTerm(R2, 0);
             
             //We will keep using R3 and R4 as the system for our swap calculation
                 
@@ -352,13 +347,11 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                     R3[id_1].copy(R2[id_2]);
                     R4[id_2].copy(R1[id_1]);
                 }
-                //Recalculate the partial wavefunctions of R1,R2,R3,R4 (after the swap)
+                //Recalculate the partial wavefunctions of R3,R4 (after the swap)
                     
-                psi3 = createWaveFunctionTerm(R3,0);      //We only need the partial WF as the exponential terms cancel
-                psi4 = createWaveFunctionTerm(R4,0);
-                g = (psi3 * psi4)/(psi1 * psi2);
-                cout << psi3*psi4 << endl;
-                
+                complex<double> psi3 = createWaveFunctionTerm(R3,0);      //We only need the partial WF as the exponential terms cancel
+                complex<double> psi4 = createWaveFunctionTerm(R4,0);
+                g = (psi3/psi1) * (psi4/psi2); //Break up the fraction into two smaller chunks
             }
             //If we didnt perform the swap, dont add to the integral (dirac delta factor)
             else {
@@ -418,13 +411,13 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        runBurnIn(R1, R2, 0.1, 1000000);
+        runBurnIn(R1, R2, 0.1, 100000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m3.txt";
-   writeMCToFile(s2Points, file_name);
+   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m3.txt";
+   //writeMCToFile(s2Points, file_name);
 }
 
 vector<vector<double>> iterateDensityProfile(int n, int n_max) {
@@ -471,8 +464,8 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
 int main(int argc, const char * argv[]) {
     
     //Testing probabilities of large N systems
-    int n = 17;
+    int n = 25;
     vector<Point> R1 = initialiseSystem(n);
     vector<Point> R2 = initialiseSystem(n);
-    iterateOverN(n, 20, 0.1, 1000000);
+    iterateOverN(n, n, 0.1, 100000);
 }

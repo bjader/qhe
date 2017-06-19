@@ -24,8 +24,7 @@ void writeToFile(vector<Point> list, string name);
 //Task 3 methods
 complex<double> createWaveFunction(vector<Point> points);
 complex<double> createWaveFunctionTerm(vector<Point> points, int option);
-
-
+double createLogProbability(vector<Point> points);
 
 #endif /* methods_hpp */
 
