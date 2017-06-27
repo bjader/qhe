@@ -53,18 +53,14 @@ complex<double> createWaveFunction(vector<Point> points) {
         
         complex<double> z_i = zPoints[i];
         
-        for (int j=0; j<zPoints.size(); j++) {
+        for (int j=i+1; j<zPoints.size(); j++) {
             
             complex<double> z_j = zPoints[j];
             complex<double> product_term = pow((z_i - z_j),m);
             //cout << endl << product_term;
-            
-            if(product_term == complex<double>(0.0,0.0)) {
-            }
-            else {
-                product = product * (product_term);
-            }
-        
+    
+            product = product * (product_term);
+    
         }
         
         //Add |Z|^2 to the exponent sum
@@ -95,17 +91,13 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
         
         complex<double> z_i = zPoints[i];
         
-        for (int j=0; j<zPoints.size(); j++) {
+        for (int j=i+1; j<zPoints.size(); j++) {
             
             complex<double> z_j = zPoints[j];
             complex<double> product_term = pow((z_i - z_j),m);
             
-            if(product_term == complex<double>(0.0,0.0)) {
-            }
-            else {
-                product = product * (product_term);
-            }
-            
+            product = product * (product_term);
+        
         }
         
         //Add |Z|^2 to the exponent sum
@@ -123,13 +115,13 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
     }
 }
 
-//Method to generate log(|Psi|^2) directly without calculating |Psi|^2 first
-//Useful when |Psi|^2 is greather than 10^300 and is classified as inf
+//Method to generate both ln(|Psi|) and the complex component of Psi
+//Used instead of createWaveFunction() when Psi > 10^300 and becomes classified as 'inf'
 
 
-double createLogProbability(vector<Point> points) {
+/*vector<complex<double>> calcReducedPsi(vector<Point> points) {
     
-    double logPsiSquared;
+    double logPsi;
     vector<complex<double>> zPoints;
     
     for (Point p : points) {
@@ -161,5 +153,5 @@ double createLogProbability(vector<Point> points) {
     
     return logPsiSquared;
     
-}
+}*/
 

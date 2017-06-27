@@ -390,7 +390,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     
     //Print normalised integral and calculate S2 for each one
     cout << endl << "Normalised complex integral: ";
-    cout << normComplexIntegral;
+    cout << normComplexIntegral << " " << sum_gx;
     
     
     //Print S2 with the standard deviation
@@ -411,13 +411,13 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        runBurnIn(R1, R2, 0.1, 100000);
+        runBurnIn(R1, R2, 0.1, 1000000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   //string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m3.txt";
-   //writeMCToFile(s2Points, file_name);
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m1.txt";
+   writeMCToFile(s2Points, file_name);
 }
 
 vector<vector<double>> iterateDensityProfile(int n, int n_max) {
@@ -464,8 +464,11 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
 int main(int argc, const char * argv[]) {
     
     //Testing probabilities of large N systems
-    int n = 25;
+    int n = 10;
     vector<Point> R1 = initialiseSystem(n);
     vector<Point> R2 = initialiseSystem(n);
-    iterateOverN(n, n, 0.1, 100000);
+    //iterateOverN(2, n, 0.1, 10000000);
+    cout << createLogProbability(R1) << endl;
+    complex<double> test = createWaveFunction(R1);
+    cout << log(norm(test));
 }
