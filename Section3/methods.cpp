@@ -119,39 +119,35 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
 //Used instead of createWaveFunction() when Psi > 10^300 and becomes classified as 'inf'
 
 
-/*vector<complex<double>> calcReducedPsi(vector<Point> points) {
+vector<double> calcReducedPsi(vector<Point> points) {
     
     double logPsi;
+    double Phi;
     vector<complex<double>> zPoints;
     
     for (Point p : points) {
         zPoints.push_back(complex<double>(p.x(),p.y()));
     }
-    
-    //Initialise summation variables
-    double absTermSum = 0;
-    double normTermSum = 0;
-    
+        
     //For every point in the system
     for (int i=0; i<zPoints.size(); i++) {
         
         complex<double> z_i = zPoints[i];
-        normTermSum += norm(z_i);
+        logPsi -= norm(z_i);
         
         for (int j=i+1; j<zPoints.size(); j++) {
             
             complex<double> z_j = zPoints[j];
-            double absTerm = log(abs(z_i - z_j));
+            logPsi += m*log(abs(z_i-z_j));
             
-            absTermSum += absTerm;
+            Phi += m*arg(z_i-z_j);
             
         }
     }
     
-    //log(|Psi|^2) = 2m*SUM_i<j(ln|zi-zj|) - 2*SUM_i(|zi|^2)
-    logPsiSquared = 2*m*absTermSum - 2*normTermSum;
+    vector<double> output = {logPsi, Phi};
     
-    return logPsiSquared;
+    return output;
     
-}*/
+}
 
