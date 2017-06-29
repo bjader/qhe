@@ -121,8 +121,8 @@ complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
 
 vector<double> calcReducedPsi(vector<Point> points) {
     
-    double logPsi;
-    double Phi;
+    double logPsi = 0;
+    double Phi = 0;
     vector<complex<double>> zPoints;
     
     for (Point p : points) {

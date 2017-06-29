@@ -57,9 +57,8 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
     for (int i = 0; i<num_iterations; i++) {
         
         //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(R1);
-        complex<double> psi2 = createWaveFunction(R2);
-        double p = norm(psi1)*norm(psi2);
+        double logPsi1 = calcReducedPsi(R1)[0];
+        double logPsi2 = calcReducedPsi(R2)[0];
         
         //Create empty test system
         vector<Point> R3;
@@ -96,21 +95,23 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         }
         
         //Calculate probability of new system
-        complex<double> psi3 = createWaveFunction(R3);
-        complex<double> psi4 = createWaveFunction(R4);
-        double p_new = norm(psi3)*norm(psi4);
+        vector<double> psi3 = calcReducedPsi(R3);
+        vector<double> psi4 = calcReducedPsi(R4);
+        double logPsi3 = psi3[0];
+        double logPsi4 = psi4[0];
+
+        double p_ratio = exp((2*(logPsi3 + logPsi4 - logPsi1 - logPsi2)));
+
         
         //Accept in accordance to Hastings-Metropolis method
-        double lambda = min(p_new/p,1.0);
+        double lambda = min(p_ratio,1.0);
         double alpha = dis(gen);
         
         //If accept the new configuration
         if (alpha < lambda) {
             
             R1 = R3;
-            psi1 = psi3;
             R2 = R4;
-            psi2 = psi4;
         }
         
     }
@@ -249,21 +250,18 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             else if (acceptance_rate > 70) {
                 dr = dr + ((dr/10)*(((acceptance_rate-70)/10)+1));
             }
-            //cout << endl << "Acceptance rate: " << acceptance_rate;
-            //cout << endl << "dr: " << dr;
             accepted_1k = 0;
             rejected_1k = 0;
             
         }
         //Output progress in increments of 10%
-        if (i % (num_iterations/10) == 0 && i!= 0) {
+        /*if (i % (num_iterations/10) == 0 && i!= 0) {
             cout << double((i*100.0/num_iterations)) << "% " << flush;
-        }
+        }*/
         
         //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(R1);
-        complex<double> psi2 = createWaveFunction(R2);
-        double p = norm(psi1)*norm(psi2);
+        double logPsi1 = calcReducedPsi(R1)[0];
+        double logPsi2 = calcReducedPsi(R2)[0];
         
         //Create empty test system
         vector<Point> R3;
@@ -300,12 +298,15 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         }
         
         //Calculate probability of new system
-        complex<double> psi3 = createWaveFunction(R3);
-        complex<double> psi4 = createWaveFunction(R4);
-        double p_new = norm(psi3)*norm(psi4);
+        vector<double> psi3 = calcReducedPsi(R3);
+        vector<double> psi4 = calcReducedPsi(R4);
+        double logPsi3 = psi3[0];
+        double logPsi4 = psi4[0];
+        
+        double p_ratio = exp(2*(logPsi3 + logPsi4 - logPsi1 - logPsi2));
         
         //Accept in accordance to Hastings-Metropolis method
-        double lambda = min(p_new/p,1.0);
+        double lambda = min(p_ratio,1.0);
         double alpha = dis(gen);
         
         //If accept the new configuration
@@ -319,9 +320,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             
             //The new moved system becomes our current system
             R1 = R3;
-            psi1 = createWaveFunctionTerm(R1, 0);
+            vector<double> psi1 = psi3;
             R2 = R4;
-            psi2 = createWaveFunctionTerm(R2, 0);
+            vector<double> psi2 = psi4;
             
             //We will keep using R3 and R4 as the system for our swap calculation
             
@@ -350,11 +351,12 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                     R3[id_1].copy(R2[id_2]);
                     R4[id_2].copy(R1[id_1]);
                 }
-                //Recalculate the partial wavefunctions of R1,R2,R3,R4 (after the swap)
+                //Recalculate the partial wavefunctions of R3,R4 (after the swap)
                 
-                psi3 = createWaveFunctionTerm(R3,0);      //We only need the partial WF as the exponential terms cancel
-                psi4 = createWaveFunctionTerm(R4,0);
-                g = (psi3 * psi4)/(psi1 * psi2);
+                psi3 = calcReducedPsi(R3);      //As a reminder psi is a vector<double> containing (ln|psi|,Phi)
+                psi4 = calcReducedPsi(R4);
+                g = exp((psi3[0]) + (psi4[0]) - (psi1[0]) - (psi2[0])) * cos(psi3[1] + psi4[1] - psi1[1] - psi2[1]);
+                //cout << g << endl;
                 
             }
             //If we didnt perform the swap, dont add to the integral (dirac delta factor)
@@ -457,24 +459,19 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        runBurnIn(R1, R2, 0.1, 10000);
+        runBurnIn(R1, R2, 0.1, 1000000);
         cout << endl << n << endl;
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
    string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m1.txt";
-   //writeMCToFile(s2Points, file_name);
+   writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    int n = 10;
-    vector<Point> R1 = initialiseSystem(n);
-    vector<Point> R2 = initialiseSystem(n);
-    //iterateOverN(n, n, 0.1, 100);
-    
-    complex<double> test1 = createWaveFunction(R1);
-    double test2 = calcReducedPsi(R1)[1];
-    cout << (arg(test1)-test2)/M_PI;
+    int n = 30;
+    iterateOverN(2, n, 1.0, 10000000);
+
     
 }
