@@ -154,10 +154,6 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
             
         }
         
-        //Calculate probability of current system
-        complex<double> psi1 = createWaveFunction(R1);
-        double p = norm(psi1);
-        
         //Create empty test system
         vector<Point> R3;
         
@@ -176,12 +172,14 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
             R3.push_back(Point(x,y));
         }
         
-        //Calculate probability of new system
-        complex<double> psi3 = createWaveFunction(R3);
-        double p_new = norm(psi3);
+        //Calculate probability of systems
+        double logPsi1 = calcReducedPsi(R1)[0];
+        double logPsi3 = calcReducedPsi(R3)[0];
+        
+        double p_ratio = exp(2*(logPsi3 - logPsi1));
         
         //Accept in accordance to Hastings-Metropolis method
-        double lambda = min(p_new/p,1.0);
+        double lambda = min(p_ratio,1.0);
         double alpha = dis(gen);
         
         //If accept the new configuration
@@ -191,7 +189,6 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
             accepted_1k += 1;
             
             R1 = R3;
-            psi1 = psi3;
             
             for (Point p1 : R1) {
                 int elementID = floor((p1.length()/width));
@@ -207,9 +204,9 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
     
     vector<Point> normNumParticles;
     for (double i=0; i<numParticles.size(); i++) {
-        //double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
+        double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
         double radius = width;
-        double norm_factor = accepted*R1.size()*radius;
+        double norm_factor = accepted*area;
         double normNum = numParticles[i]/(norm_factor);
         Point slice = Point(normNum,width*i);
         normNumParticles.push_back(slice);
@@ -424,7 +421,7 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
         vector<Point> density = densityProfile(R1, 0.1, num_iterations, 0.1);
         
         //If plotting total density profile
-        string file_name = "density_n" + to_string(j) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m.txt";
+        string file_name = "density_n" + to_string(j) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m_m3.txt";
         writeToFile(density, file_name);
         
         //If plotting rho_0 or r_0
@@ -464,14 +461,18 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m1.txt";
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m5.txt";
    writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    int n = 30;
-    iterateOverN(2, n, 1.0, 10000000);
-
+    //int n = 10;
+    //iterateOverN(2, n, 1.0, 10000000);
+    
+    vector<int> nList = {20,25,30};
+    for (int i : nList) {
+        iterateDensityProfile(i, i);
+    }
     
 }
