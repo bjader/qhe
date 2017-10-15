@@ -8,7 +8,7 @@
 
 #include "methods.hpp"
 
-int m = 3;
+int m = 1;
 
 //Method to write MC generated data to file, a vector of Points and a vector of stdev doubles
 void writeMCToFile(vector<vector<double>> list, string name) {

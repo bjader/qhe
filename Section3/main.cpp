@@ -22,7 +22,7 @@ using namespace Eigen;
 
 //Global constants
 //const complex<double> i(0.0,1.0);
-double L = 10;
+double L = 20;
 
 //Global objects
 random_device rd;
@@ -205,7 +205,7 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
     vector<Point> normNumParticles;
     for (double i=0; i<numParticles.size(); i++) {
         double area = M_PI * (pow(width*(i+1),2) - pow(width*i,2));
-        double radius = width;
+        //double radius = width;
         double norm_factor = accepted*area;
         double normNum = numParticles[i]/(norm_factor);
         Point slice = Point(normNum,width*i);
@@ -252,9 +252,9 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
             
         }
         //Output progress in increments of 10%
-        /*if (i % (num_iterations/10) == 0 && i!= 0) {
+        if (i % (num_iterations/10) == 0 && i!= 0) {
             cout << double((i*100.0/num_iterations)) << "% " << flush;
-        }*/
+        }
         
         //Calculate probability of current system
         double logPsi1 = calcReducedPsi(R1)[0];
@@ -461,18 +461,13 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
         vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m5.txt";
+   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m1.txt";
    writeMCToFile(s2Points, file_name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    //int n = 10;
-    //iterateOverN(2, n, 1.0, 10000000);
-    
-    vector<int> nList = {20,25,30};
-    for (int i : nList) {
-        iterateDensityProfile(i, i);
-    }
+    int n = 24;
+    iterateOverN(24, 30, 1.0, 100000000);
     
 }
