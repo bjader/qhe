@@ -47,7 +47,7 @@
 		D81BEA671E2E847C008B07C6 = {
 			isa = PBXGroup;
 			children = (
-				D81BEA721E2E847C008B07C6 /* Section3 */,
+				D81BEA721E2E847C008B07C6 /* QHE */,
 				D81BEA711E2E847C008B07C6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,24 +60,17 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		D81BEA721E2E847C008B07C6 /* Section3 */ = {
+		D81BEA721E2E847C008B07C6 /* QHE */ = {
 			isa = PBXGroup;
 			children = (
 				D81BEA731E2E847C008B07C6 /* main.cpp */,
-				D81BEA801E2E85CE008B07C6 /* Custom_classes */,
-			);
-			path = Section3;
-			sourceTree = "<group>";
-		};
-		D81BEA801E2E85CE008B07C6 /* Custom_classes */ = {
-			isa = PBXGroup;
-			children = (
 				D81BEA7A1E2E84D3008B07C6 /* Point.cpp */,
 				D81BEA7B1E2E84D3008B07C6 /* Point.hpp */,
 				D81BEA7D1E2E8555008B07C6 /* methods.cpp */,
 				D81BEA7E1E2E8555008B07C6 /* methods.hpp */,
 			);
-			name = Custom_classes;
+			name = QHE;
+			path = Section3;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
