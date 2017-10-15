@@ -20,8 +20,6 @@
 using namespace std;
 using namespace Eigen;
 
-//Global constants
-//const complex<double> i(0.0,1.0);
 double L = 20;
 
 //Global objects
@@ -38,7 +36,7 @@ vector<Point> initialiseSystem (int N) {
     for (int i=0; i<N; i++) {
         
         //Populate R1 with particles randomly placed within radius of 3sqrt(N)-sigma from origin
-        double sigma = 1/sqrt(2) * sqrt(N);
+        double sigma = sqrt(N);
         
         double phi1 = (2*M_PI) * dis(gen); //Random angle in polar coordinates
         double radius1 = (dis(gen) * sigma); //Random radius between 0 -> 3-sigma
@@ -52,13 +50,13 @@ vector<Point> initialiseSystem (int N) {
 
 //Method to "burn in" a random system to more accurately represent the true distribution
 //Runs same Metropolis algorithm as runMetropolis but without any calculations or swaps
-void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterations) {
+void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterations, int m) {
     
     for (int i = 0; i<num_iterations; i++) {
         
         //Calculate probability of current system
-        double logPsi1 = calcReducedPsi(R1)[0];
-        double logPsi2 = calcReducedPsi(R2)[0];
+        double logPsi1 = calcReducedPsi(R1,m)[0];
+        double logPsi2 = calcReducedPsi(R2,m)[0];
         
         //Create empty test system
         vector<Point> R3;
@@ -95,8 +93,8 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
         }
         
         //Calculate probability of new system
-        vector<double> psi3 = calcReducedPsi(R3);
-        vector<double> psi4 = calcReducedPsi(R4);
+        vector<double> psi3 = calcReducedPsi(R3,m);
+        vector<double> psi4 = calcReducedPsi(R4,m);
         double logPsi3 = psi3[0];
         double logPsi4 = psi4[0];
 
@@ -119,7 +117,7 @@ void runBurnIn (vector<Point> &R1, vector<Point> &R2, double dr, int num_iterati
 
 //Method to find the density profile of N-particles
 
-vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, double width) {
+vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, double width, int m) {
     
     vector<double> numParticles;
     int accepted = 0;
@@ -173,8 +171,8 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
         }
         
         //Calculate probability of systems
-        double logPsi1 = calcReducedPsi(R1)[0];
-        double logPsi3 = calcReducedPsi(R3)[0];
+        double logPsi1 = calcReducedPsi(R1,m)[0];
+        double logPsi3 = calcReducedPsi(R3,m)[0];
         
         double p_ratio = exp(2*(logPsi3 - logPsi1));
         
@@ -216,7 +214,7 @@ vector<Point> densityProfile (vector<Point> R1, double dr, int num_iterations, d
 }
 
 //Method using a Metropolis algorithm to iterate the two systems over random moves
-vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations) {
+vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, double dr, int num_iterations, int m) {
     
     //Define some counters
     int accepted = 0;
@@ -224,7 +222,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     int rejected = 0;
     int rejected_1k = 0;
     int swapped = 0;
-    
+ EIGEN_DEPRECATED    
     //Set up array to keep track of integral summations for a set number of Z values
     complex<double> sum_gx = complex<double>(0,0);
     complex<double> sum_g2x = complex<double>(0,0);
@@ -257,8 +255,8 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         }
         
         //Calculate probability of current system
-        double logPsi1 = calcReducedPsi(R1)[0];
-        double logPsi2 = calcReducedPsi(R2)[0];
+        double logPsi1 = calcReducedPsi(R1,m)[0];
+        double logPsi2 = calcReducedPsi(R2,m)[0];
         
         //Create empty test system
         vector<Point> R3;
@@ -295,8 +293,8 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
         }
         
         //Calculate probability of new system
-        vector<double> psi3 = calcReducedPsi(R3);
-        vector<double> psi4 = calcReducedPsi(R4);
+        vector<double> psi3 = calcReducedPsi(R3,m);
+        vector<double> psi4 = calcReducedPsi(R4,m);
         double logPsi3 = psi3[0];
         double logPsi4 = psi4[0];
         
@@ -350,8 +348,8 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
                 }
                 //Recalculate the partial wavefunctions of R3,R4 (after the swap)
                 
-                psi3 = calcReducedPsi(R3);      //As a reminder psi is a vector<double> containing (ln|psi|,Phi)
-                psi4 = calcReducedPsi(R4);
+                psi3 = calcReducedPsi(R3,m);      //As a reminder psi is a vector<double> containing (ln|psi|,Phi)
+                psi4 = calcReducedPsi(R4,m);
                 g = exp((psi3[0]) + (psi4[0]) - (psi1[0]) - (psi2[0])) * cos(psi3[1] + psi4[1] - psi1[1] - psi2[1]);
                 //cout << g << endl;
                 
@@ -408,7 +406,7 @@ vector<double> runMetropolis (vector<Point> rPoints1, vector<Point> rPoints2, do
     return s2Point;
 }
 
-vector<vector<double>> iterateDensityProfile(int n, int n_max) {
+vector<vector<double>> iterateDensityProfile(int n, int n_max, int m) {
     
     vector<vector<double>> r0List;
     
@@ -417,8 +415,8 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
         double num_iterations = 10000000;
         vector<Point> R1 = initialiseSystem(j);
         vector<Point> R2 = initialiseSystem(j);
-        runBurnIn(R1, R2, 0.1, 1000000);
-        vector<Point> density = densityProfile(R1, 0.1, num_iterations, 0.1);
+        runBurnIn(R1, R2, 0.1, 1000000, m);
+        vector<Point> density = densityProfile(R1, 0.1, num_iterations, 0.1, m);
         
         //If plotting total density profile
         string file_name = "density_n" + to_string(j) + "_width" + to_string(density[1].y()) + "_L" + to_string(L) + "_" + to_string(num_iterations/1000000) + "m_m3.txt";
@@ -449,25 +447,28 @@ vector<vector<double>> iterateDensityProfile(int n, int n_max) {
     
 }
 
-
 //Method to iterate runMetropolis over multiple N values and write it to file
-void iterateOverN (int min_n, int max_n, double dr, int num_iterations) {
+void iterateOverN (int min_n, int max_n, double dr, int num_iterations, int m) {
     vector<vector<double>> s2Points;
     for (int n=min_n; n<max_n+1; n++) {
         vector<Point> R1 = initialiseSystem(n);
         vector<Point> R2 = initialiseSystem(n);
-        runBurnIn(R1, R2, 0.1, 1000000);
+        runBurnIn(R1, R2, 0.1, 1000000, m);
         cout << endl << n << endl;
-        vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations);
+        vector<double> s2Point = runMetropolis(R1, R2, dr, num_iterations, m);
         s2Points.push_back(s2Point);
     }
-   string file_name = "MC_n" + to_string(max_n) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_m1.txt";
-   writeMCToFile(s2Points, file_name);
+   string name = "MC_m" + to_string(m) + "_" + to_string(num_iterations/1000000) + "m_L" + to_string(int(L)) + "_n" + to_string(max_n) + ".txt";
+   writeMCToFile(s2Points, name);
 }
 
 int main(int argc, const char * argv[]) {
     
-    int n = 24;
-    iterateOverN(24, 30, 1.0, 100000000);
+    int m = 3;
+    int min_n = 2;
+    int max_n = 30;
+    double dr = 1.0;
+    int iterations = 10;
     
+    iterateOverN(min_n, max_n, dr, iterations*1000000, m);
 }

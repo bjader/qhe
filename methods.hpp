@@ -22,9 +22,7 @@ void writeMCToFile(vector<vector<double>> list, string name);
 void writeToFile(vector<Point> list, string name);
 
 //Task 3 methods
-complex<double> createWaveFunction(vector<Point> points);
-complex<double> createWaveFunctionTerm(vector<Point> points, int option);
-vector<double> calcReducedPsi(vector<Point> points);
+vector<double> calcReducedPsi(vector<Point> points, int m);
 
 #endif /* methods_hpp */
 

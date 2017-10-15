@@ -1,12 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pylab
+import os
+
+data_dir = os.path.join(os.path.dirname(__file__),'..','data','density_profile')
+
 
 x1,x2,x3,x4,x5,x6,x7 = [],[],[],[],[],[],[]
 y1,y2,y3,y4,y5,y6,y7 = [],[],[],[],[],[],[]
 
 #Import analytical results
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n2_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n2_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -17,7 +21,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         y1.append(yval)
 
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n5_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n5_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -27,7 +31,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         x2.append(xval)
         y2.append(yval)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n10_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n10_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -37,7 +41,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         x3.append(xval)
         y3.append(yval)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n15_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n15_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -47,7 +51,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         x4.append(xval)
         y4.append(yval)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n20_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n20_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -57,7 +61,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         x5.append(xval)
         y5.append(yval)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n25_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n25_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         
@@ -67,7 +71,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/densi
         x6.append(xval)
         y6.append(yval)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/density_profile/paper_results/m=1/density_n30_width0.100000_L10.000000_10.000000m_m1.txt") as f:
+with open(os.path.join(data_dir, 'density_n30_width0.100000_L10.000000_10.000000m_m1.txt') ) as f:
     
     for line in f:
         

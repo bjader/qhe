@@ -8,11 +8,9 @@
 
 #include "methods.hpp"
 
-int m = 1;
-
 //Method to write MC generated data to file, a vector of Points and a vector of stdev doubles
 void writeMCToFile(vector<vector<double>> list, string name) {
-    ofstream myfile("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/" + name);
+    ofstream myfile("/Users/benjaminjaderberg/git/msci-project/qhe/data" + name);
     if (myfile.is_open()) {
         for (int i=0; i<list.size(); i++) {
             myfile << (list[i])[0] << "," << (list[i])[1] << "," << (list[i])[2] << "\n";
@@ -34,92 +32,11 @@ void writeToFile(vector<Point> list, string name) {
     else { cout << "Writing to file failed";}
 }
 
-//Method to create a Laughlin wavefunction based off input coordinates in 2-d space
-complex<double> createWaveFunction(vector<Point> points) {
-    
-    complex<double> Psi;
-    vector<complex<double>> zPoints;
-    
-    for (Point p : points) {
-        zPoints.push_back(complex<double>(p.x(),p.y()));
-    }
-    
-    //Initialise summation variables
-    complex<double> product = complex<double>(1.0,0.0);
-    double sum_square = 0;
-    
-    //For every point in the system
-    for (int i=0; i<zPoints.size(); i++) {
-        
-        complex<double> z_i = zPoints[i];
-        
-        for (int j=i+1; j<zPoints.size(); j++) {
-            
-            complex<double> z_j = zPoints[j];
-            complex<double> product_term = pow((z_i - z_j),m);
-            //cout << endl << product_term;
-    
-            product = product * (product_term);
-    
-        }
-        
-        //Add |Z|^2 to the exponent sum
-        sum_square += norm(z_i);
-    }
-    
-    Psi = product * exp(-sum_square);
-
-    return Psi;
-}
-
-//Method to calculate only one term of the Laughlin wave function
-complex<double> createWaveFunctionTerm(vector<Point> points, int option) {
-    
-    complex<double> Psi;
-    vector<complex<double>> zPoints;
-    
-    for (Point p : points) {
-        zPoints.push_back(complex<double>(p.x(),p.y()));
-    }
-    
-    //Initialise summation variables
-    complex<double> product = complex<double>(1.0,0.0);
-    double sum_square = 0;
-    
-    //For every point in the system
-    for (int i=0; i<zPoints.size(); i++) {
-        
-        complex<double> z_i = zPoints[i];
-        
-        for (int j=i+1; j<zPoints.size(); j++) {
-            
-            complex<double> z_j = zPoints[j];
-            complex<double> product_term = pow((z_i - z_j),m);
-            
-            product = product * (product_term);
-        
-        }
-        
-        //Add |Z|^2 to the exponent sum
-        sum_square += norm(z_i);
-    }
-    
-    complex<double> exp_term = exp(-sum_square);
-    
-    //Return the desired part of the wave function
-    if (option) {
-        return exp_term;
-    }
-    else {
-        return product;
-    }
-}
-
 //Method to generate both ln(|Psi|) and the complex component of Psi
 //Used instead of createWaveFunction() when Psi > 10^300 and becomes classified as 'inf'
 
 
-vector<double> calcReducedPsi(vector<Point> points) {
+vector<double> calcReducedPsi(vector<Point> points, int m) {
     
     double logPsi = 0;
     double Phi = 0;

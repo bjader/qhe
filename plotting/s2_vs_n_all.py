@@ -1,23 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
-import pandas as pd
 import statsmodels.api as sm
+import os
+
+data_dir = os.path.join(os.path.dirname(__file__),'..','data','s2')
 
 #Set up empty arrays to fill with data
 x1,x2,x3,x4,x5 = [],[],[],[],[]
 y1,y2,y3,y4,y5 = [],[],[],[],[]
 y_err1,y_err2,y_err3,y_err4,y_err5 = [],[],[],[],[]
 
-#Import all of the data
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs_n/MC_n30_10m_L10_m1.txt") as f:
+#m1 data
+with open(os.path.join(data_dir, 'MC_n30_10m_L10_m1.txt') ) as f:
     
     #Skip first n lines of data
     n=0
-        
+    
     for x in range(0,n):
         next(f)
-
+    
     for line in f:
         
         currentline = line.split(",")
@@ -29,14 +31,15 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs
         y1.append(yval)
         y_err1.append(y_err)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs_n/MC_n30_10m_L10_m3.txt") as f:
+#m3 data
+with open(os.path.join(data_dir, 'MC_n30_10m_L10_m3.txt') ) as f:
     
     #Skip first n lines of data
     n=0
-    
+        
     for x in range(0,n):
         next(f)
-    
+
     for line in f:
         
         currentline = line.split(",")
@@ -48,7 +51,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs
         y2.append(yval)
         y_err2.append(y_err)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs_n/MC_n30_10m_L10_m5.txt") as f:
+with open(os.path.join(data_dir, 'MC_n23_100m_L10_m3.txt') ) as f:
     
     #Skip first n lines of data
     n=0
@@ -67,7 +70,8 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs
         y3.append(yval)
         y_err3.append(y_err)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs_n/MC_n23_100m_L10_m3.txt") as f:
+#m5 data
+with open(os.path.join(data_dir, 'MC_n28_100m_L10_m5.txt') ) as f:
     
     #Skip first n lines of data
     n=0
@@ -86,7 +90,7 @@ with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs
         y4.append(yval)
         y_err4.append(y_err)
 
-with open("/Users/benjaminjaderberg/Desktop/4th_Year/MSci_Project/Section3/s2_vs_n/MC_n28_100m_L10_m5.txt") as f:
+with open(os.path.join(data_dir, 'MC_n30_10m_L10_m5.txt') ) as f:
     
     #Skip first n lines of data
     n=0
@@ -116,8 +120,8 @@ plt.ylabel("Entanglement entropy ($S_{2}$)")
 #Plot scatter graphs
 plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="m=1 10m")
 plt.errorbar(x2,y2, yerr=y_err2, c='r', ls='none', marker='x', label="m=3 10m")
-plt.errorbar(x3,y3, yerr=y_err3, c='g', ls='none', marker='x', label="m=5 10m")
-plt.errorbar(x4,y4, yerr=y_err4, c='c', ls='none', marker='x', label="m=3 100m")
+#plt.errorbar(x3,y3, yerr=y_err3, c='g', ls='none', marker='x', label="m=3 100m")
+#plt.errorbar(x4,y4, yerr=y_err4, c='c', ls='none', marker='x', label="m=5 10m")
 plt.errorbar(x5,y5, yerr=y_err5, c='m', ls='none', marker='x', label="m=5 100m")
 
 
@@ -141,6 +145,5 @@ y1_line = (slope * xplot + intercept)
 plt.plot(xplot,y1_line, c='black', ls='dotted', label= 'y=' + "%.3f" % slope + 'x + ' + "%.3f" % intercept)
 '''
 plt.legend(loc = 'upper left')
-
 
 plt.show()
