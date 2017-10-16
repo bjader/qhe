@@ -122,7 +122,7 @@ plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="m=1 10m")
 plt.errorbar(x2,y2, yerr=y_err2, c='r', ls='none', marker='x', label="m=3 10m")
 #plt.errorbar(x3,y3, yerr=y_err3, c='g', ls='none', marker='x', label="m=3 100m")
 #plt.errorbar(x4,y4, yerr=y_err4, c='c', ls='none', marker='x', label="m=5 10m")
-plt.errorbar(x5,y5, yerr=y_err5, c='m', ls='none', marker='x', label="m=5 100m")
+#plt.errorbar(x5,y5, yerr=y_err5, c='m', ls='none', marker='x', label="m=5 100m")
 
 
 '''#Plot least square fit for each scatter

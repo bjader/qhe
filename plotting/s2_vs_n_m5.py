@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import statsmodels.api as sm
+from scipy.stats import linregress
 
 data_dir = os.path.join(os.path.dirname(__file__),'..','data','s2')
 
@@ -53,12 +55,30 @@ plt.title("$S_2$ particle scaling for $m=5$ Laughlin states")
 plt.xlabel(r"Number of particles ($\sqrt{n}$)")
 plt.ylabel("Entanglement entropy ($S_{2}$)")
 
-#Manually enforce axes not to be negative
+#Plot least square fit for each scatter
+slope,intercept,r_value,p_value,std_error = linregress(x2,y2)
+
+#Find least square fit for each scatter
+model = sm.OLS(y2,sm.add_constant(x2))
+result = model.fit()
+print(result.summary())
+
+#Create an x-array for the regression line
+x_max = x2[len(x2)-1]
+x_min = x2[0]
+xplot = np.linspace(x_min,x_max,num=100)
+
+#Apply the straight line equation with the parameters from linregress
+y1_line = (slope * xplot + intercept)
+
+#Plot the linear regression lines
+plt.plot(xplot,y1_line, c='black', ls='dotted', label= 'y=' + "%.3f" % slope + 'x + ' + "%.3f" % intercept)
 
 #Plot scatter graphs
 plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="L=10")
 plt.errorbar(x2,y2, yerr=y_err2, c='r', ls='none', marker='x', label="L=20")
 
 plt.legend(loc = 'upper left')
+
 
 plt.show()
