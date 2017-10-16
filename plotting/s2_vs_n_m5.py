@@ -29,7 +29,8 @@ with open(os.path.join(data_dir, 'MC_n30_10m_L10_m5.txt') ) as f:
         y1.append(yval)
         y_err1.append(y_err)
 
-with open(os.path.join(data_dir, 'MC_n28_100m_L10_m5.txt') ) as f:
+with open(os.path.join(data_dir, 'MC_m5_10m_L20_n30.txt') ) as f:
+#with open(os.path.join(data_dir, 'MC_n28_100m_L10_m5.txt') ) as f:
     
     #Skip first n lines of data
     n=0
@@ -55,8 +56,8 @@ plt.ylabel("Entanglement entropy ($S_{2}$)")
 #Manually enforce axes not to be negative
 
 #Plot scatter graphs
-plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="m=5 10m iterations")
-plt.errorbar(x2,y2, yerr=y_err2, c='r', ls='none', marker='x', label="m=5 100m iterations")
+plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="L=10")
+plt.errorbar(x2,y2, yerr=y_err2, c='r', ls='none', marker='x', label="L=20")
 
 plt.legend(loc = 'upper left')
 
