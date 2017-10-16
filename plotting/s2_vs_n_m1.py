@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import statsmodels.api as sm
+from scipy.stats import linregress
 
 data_dir = os.path.join(os.path.dirname(__file__),'..','data','s2')
 
@@ -28,6 +30,11 @@ with open(os.path.join(data_dir, 'MC_n30_10m_L10_m1.txt') ) as f:
         x1.append(np.sqrt(xval))
         y1.append(yval)
         y_err1.append(y_err)
+
+#Find least square fit for each scatter
+model = sm.OLS(y1,sm.add_constant(x1))
+result = model.fit()
+print(result.summary())
 
 plt.title("$S_2$ particle scaling for $m=1$ Laughlin states")
 plt.xlabel(r"Number of particles ($\sqrt{n}$)")
