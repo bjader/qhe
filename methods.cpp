@@ -10,7 +10,7 @@
 
 //Method to write MC generated data to file, a vector of Points and a vector of stdev doubles
 void writeMCToFile(vector<vector<double>> list, string name) {
-    ofstream myfile("/Users/benjaminjaderberg/git/msci-project/qhe/data" + name);
+    ofstream myfile("/Users/benjaminjaderberg/git/msci-project/qhe/data/" + name);
     if (myfile.is_open()) {
         for (int i=0; i<list.size(); i++) {
             myfile << (list[i])[0] << "," << (list[i])[1] << "," << (list[i])[2] << "\n";

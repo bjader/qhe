@@ -464,11 +464,12 @@ void iterateOverN (int min_n, int max_n, double dr, int num_iterations, int m) {
 
 int main(int argc, const char * argv[]) {
     
-    int m = 3;
     int min_n = 2;
     int max_n = 30;
     double dr = 1.0;
-    int iterations = 10;
+    int iterations = 10000000;
     
-    iterateOverN(min_n, max_n, dr, iterations*1000000, m);
+    iterateOverN(min_n, max_n, dr, iterations, 3);
+    iterateOverN(min_n, max_n, dr, iterations, 5);
+
 }
