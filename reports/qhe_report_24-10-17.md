@@ -21,7 +21,7 @@ Below are the plots for $$m=1,3,5$$. We expect an intercept with the origin if o
 
 https://raw.githubusercontent.com/bjader/qhe/master/images/m1_24-10-17.png
 https://raw.githubusercontent.com/bjader/qhe/master/images/m3_24-10-17.png
-https://raw.githubusercontent.com/bjader/qhe/master/images/m3_24-10-17.png
+https://raw.githubusercontent.com/bjader/qhe/master/images/m5_24-10-17.png
 
 This is fantastic! From first observations, our data seems to fit the theoretical scaling very well. As a reminder, we arrived at the theoretical equation using the topological area law:
 
