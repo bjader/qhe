@@ -32,18 +32,27 @@ with open(os.path.join(data_dir, 'MC_n30_10m_L10_m1.txt') ) as f:
         y_err1.append(y_err)
 
 #Find least square fit for each scatter
-model = sm.OLS(y1,sm.add_constant(x1))
+model = sm.OLS(y1,x1)
 result = model.fit()
-print(result.summary())
+slope = result.params[0]
 
 plt.title("$S_2$ particle scaling for $m=1$ Laughlin states")
 plt.xlabel(r"Number of particles ($\sqrt{n}$)")
-plt.ylabel("Entanglement entropy ($S_{2}$)")
+plt.ylabel("Entanglement entropy ($S_{2}$ + 0)")
 
-#Manually enforce axes not to be negative
+#Create an x-array for the regression line
+x_max = x1[len(x2)-1]
+x_min = x1[0]
+xplot = np.linspace(x_min,x_max,num=100)
+
+#Apply the straight line equation with the parameters from linregress
+y1_line = (slope * xplot)
+
+#Plot the linear regression lines
+plt.plot(xplot,y1_line, c='black', ls='dotted', label= 'y=' + "%.3f" % slope + 'x')
 
 #Plot scatter graphs
-plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="m=1 10m iterations")
+plt.errorbar(x1,y1, yerr=y_err1, c='b', ls='none', marker='x', label="L=10")
 
 plt.legend(loc = 'upper left')
 
